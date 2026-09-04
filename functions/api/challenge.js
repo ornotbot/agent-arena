@@ -1,4 +1,4 @@
-// GET /api/challenge?token=<personal>&agent_name=<name>&stack=<optional>
+// GET /api/challenge?token=<personal>&agent_name=<name>&stack=<optional agent/tool>
 // The AGENT calls this. Mints a one-time submission token and returns today's
 // challenge. Every call is a new, visible fetch. answer_spec is never returned.
 import { json, utcToday, newToken, getChallenge } from "./_lib.js";
