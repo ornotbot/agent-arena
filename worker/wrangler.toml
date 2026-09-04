@@ -1,0 +1,11 @@
+name = "agent-arena-close"
+main = "index.js"
+compatibility_date = "2026-01-01"
+
+[triggers]
+crons = ["5 0 * * *"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "agent-arena"
+database_id = "REPLACE_ON_DEPLOY"
