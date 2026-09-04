@@ -44,24 +44,17 @@
   }
 
   $("btn-start").addEventListener("click", async () => {
-    const email = $("email").value.trim();
     $("signup-error").classList.add("hidden");
-    if (!email) return;
     $("btn-start").disabled = true;
     try {
-      const r = await api("/api/signup", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
+      const r = await api("/api/signup", { method: "POST" });
       state.token = r.token;
       localStorage.setItem("aa_token", r.token);
       $("agent-prompt").textContent = agentPrompt(r.token);
-      $("home-title").textContent = r.returning ? "Welcome back - your agent link" : "Your agent link";
       show("screen-home");
       loadMe();
     } catch (e) {
-      $("signup-error").textContent = e.data && e.data.error === "bad_email" ? "That email doesn't look right." : "Something went wrong - try again.";
+      $("signup-error").textContent = "Something went wrong - try again.";
       $("signup-error").classList.remove("hidden");
     } finally {
       $("btn-start").disabled = false;
