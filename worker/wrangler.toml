@@ -8,4 +8,4 @@ crons = ["5 0 * * *"]
 [[d1_databases]]
 binding = "DB"
 database_name = "agent-arena"
-database_id = "REPLACE_ON_DEPLOY"
+database_id = "2760eae8-2ede-4c9b-a3b3-b2757637a925"

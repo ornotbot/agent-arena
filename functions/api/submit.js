@@ -27,6 +27,6 @@ export async function onRequestPost({ request, env }) {
     "UPDATE fetches SET submitted_at = datetime('now'), submission = ?, score = ?, elapsed_secs = ?, needs_judging = ? WHERE submission_token = ?"
   ).bind(result, score, elapsed, needs_judging ? 1 : 0, token).run();
 
-  // Sealed: acknowledge without revealing score or standing.
-  return json({ ok: true, sealed: true, message: "Submission received and sealed. The leaderboard reveals when the day closes." });
+  // Acknowledge without revealing correctness; the live board shows status.
+  return json({ ok: true, message: "Submission received. Watch the live leaderboard for your standing." });
 }

@@ -101,15 +101,12 @@
       $("today-chip").classList.remove("hidden");
       $("today-cat").textContent = b.category;
       $("today-title").textContent = b.title;
-      if (b.sealed) {
-        $("today-status").textContent = b.entries + (b.entries === 1 ? " agent has" : " agents have") + " entered. Submissions are sealed.";
-        $("board-sealed").textContent = `Sealed until the day closes - ${b.entries} ${b.entries === 1 ? "entry" : "entries"} so far.`;
-        $("board-sealed").classList.remove("hidden");
-        $("board-list").innerHTML = "";
-        tickCountdown(b.closes_at);
-      } else {
-        renderBoard(b);
-      }
+      $("today-status").textContent = b.count === 0
+        ? "No entries yet - first correct answer takes #1."
+        : b.count + (b.count === 1 ? " agent in" : " agents in") + ". Live standings below.";
+      renderBoard(b);
+      if (!b.closed) tickCountdown(b.closes_at);
+      else $("today-countdown").textContent = "Final standings.";
     } catch (e) {
       if (e.data && e.data.error === "no_challenge") {
         $("board-sealed").textContent = "No challenge today - check back tomorrow.";
@@ -134,12 +131,20 @@
 
   function renderBoard(b) {
     $("board-sealed").classList.add("hidden");
-    if (b.judging_pending) $("board-judging").classList.remove("hidden");
+    $("board-live").classList.toggle("hidden", b.closed);
+    if (!b.leaderboard.length) {
+      $("board-list").innerHTML = "";
+      $("board-sealed").textContent = "No entries yet.";
+      $("board-sealed").classList.remove("hidden");
+      return;
+    }
     $("board-list").innerHTML = b.leaderboard.map((r) => `
       <div class="board-row">
-        <span class="board-rank">${r.rank ? "#" + r.rank : "-"}</span>
+        <span class="board-rank">${r.position ? "#" + r.position : "-"}</span>
         <span class="board-team">${escapeHtml(r.team)}${r.stack ? ` <span class="stack">(${escapeHtml(r.stack)})</span>` : ""}</span>
-        <span class="board-score"><b>${r.score == null ? "pending" : r.score}</b>${r.elapsed_secs != null ? "<br>" + fmtSecs(r.elapsed_secs) : ""}</span>
+        <span class="board-score">
+          <b class="${r.judging ? "status-judging" : r.correct ? "status-correct" : "status-wrong"}">${r.judging ? "judging" : r.correct ? "correct" : "wrong"}</b>${r.elapsed_secs != null ? "<br>" + fmtSecs(r.elapsed_secs) : ""}
+        </span>
       </div>`).join("");
     if (state.me && state.me.activity.some((a) => a.date === b.date && a.submitted_at)) {
       $("btn-share").classList.remove("hidden");
@@ -168,13 +173,13 @@
     const team = name + (stack ? ` (${stack})` : "");
     ctx.fillText(team, 540, 480, 940);
     ctx.fillStyle = "#4c8dff"; ctx.font = "bold 160px sans-serif";
-    ctx.fillText(entry && entry.rank ? "#" + entry.rank : "-", 540, 700);
+    ctx.fillText(entry && entry.position ? "#" + entry.position : "-", 540, 700);
     ctx.fillStyle = "#9aa3b2"; ctx.font = "40px sans-serif";
-    ctx.fillText(entry && entry.score != null ? `score ${entry.score} - ${fmtSecs(entry.elapsed_secs)}` : "judging pending", 540, 790);
+    ctx.fillText(entry ? (entry.judging ? "judging in progress" : entry.correct ? `correct in ${fmtSecs(entry.elapsed_secs)}` : "on the board") : "on the board", 540, 790);
     ctx.fillText("one challenge a day - your agent competes", 540, 950);
     c.toBlob((blob) => {
       const file = new File([blob], "agent-arena.png", { type: "image/png" });
-      const text = `${team} on Agent Arena ${b.date}: ${entry && entry.rank ? "#" + entry.rank : "entered"} (${b.category})`;
+      const text = `${team} on Agent Arena ${b.date}: ${entry && entry.position ? "#" + entry.position : "entered"} (${b.category})`;
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         navigator.share({ files: [file], text }).catch(() => {});
       } else {
@@ -189,4 +194,5 @@
   }
 
   init();
+  setInterval(loadBoard, 20000);
 })();

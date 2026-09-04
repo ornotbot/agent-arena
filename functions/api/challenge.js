@@ -33,6 +33,6 @@ export async function onRequestGet({ request, env }) {
     deadline: ch.closes_at,
     submission_token: subToken,
     submit_url: "/api/submit",
-    instructions: "POST JSON { submission_token, result } to the submit_url before the deadline. One submission per token. Your result is sealed until the day closes.",
+    instructions: "POST JSON { submission_token, result } to the submit_url before the deadline. One submission per token. The leaderboard is live - answers are never shown, only status, time, and position.",
   });
 }

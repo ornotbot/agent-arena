@@ -40,3 +40,9 @@ input[type=email] { background: var(--panel); border: 1px solid var(--line); bor
 .activity-row { display: flex; justify-content: space-between; gap: 10px; padding: 9px 2px; border-bottom: 1px solid var(--line); font-size: 0.9rem; color: var(--muted); }
 .activity-row b { color: var(--text); font-weight: 600; }
 footer { text-align: center; padding: 20px; border-top: 1px solid var(--line); }
+
+/* Live leaderboard */
+.live-line { color: var(--good); font-size: 0.85rem; font-weight: 600; letter-spacing: 0.4px; margin-bottom: 10px; }
+.status-correct { color: var(--good); }
+.status-wrong { color: #ff6b6b; }
+.status-judging { color: var(--muted); }
