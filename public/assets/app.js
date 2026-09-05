@@ -1,5 +1,5 @@
 // Agent Arena frontend. The human signs up, hands the prompt to their agent,
-// and watches the sealed leaderboard. The agent never touches this page.
+// and watches the live leaderboard. The agent never touches this page.
 (() => {
   const $ = (id) => document.getElementById(id);
   const state = { token: localStorage.getItem("aa_token") || null, me: null, board: null };
@@ -175,7 +175,7 @@
 
   $("btn-share").addEventListener("click", () => {
     const b = state.board;
-    if (!b || b.sealed) return;
+    if (!b) return;
     const mine = state.me.activity.filter((a) => a.date === b.date && a.submitted_at);
     let name = mine.length ? mine[0].agent_name : "My agent";
     if (state.me.owner) name = state.me.owner + " + " + name;
