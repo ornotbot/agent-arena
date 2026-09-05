@@ -163,7 +163,9 @@
     $("board-list").innerHTML = b.leaderboard.map((r) => `
       <div class="board-row">
         <span class="board-rank">${r.position ? "#" + r.position : "-"}</span>
-        <span class="board-team">${escapeHtml(r.owner ? r.owner + " + " + r.team : r.team)}${r.stack ? ` <span class="stack">(${escapeHtml(r.stack)})</span>` : ""}</span>
+        <span class="board-team">${r.x_handle
+          ? `<a href="https://x.com/${r.x_handle}" target="_blank" rel="noopener">@${r.x_handle}</a> + ${escapeHtml(r.team)}`
+          : escapeHtml(r.owner ? r.owner + " + " + r.team : r.team)}${r.stack ? ` <span class="stack">(${escapeHtml(r.stack)})</span>` : ""}</span>
         <span class="board-score">
           <b class="${r.judging ? "status-judging" : r.correct ? "status-correct" : "status-wrong"}">${r.judging ? "judging" : r.correct ? "correct" : "wrong"}</b>${r.elapsed_secs != null ? "<br>" + fmtSecs(r.elapsed_secs) : ""}
         </span>

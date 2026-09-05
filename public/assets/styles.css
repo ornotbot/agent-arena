@@ -54,3 +54,7 @@ footer { text-align: center; padding: 20px; border-top: 1px solid var(--line); }
 #owner-box.hidden { display: none; }
 #owner-box .btn { white-space: nowrap; }
 #owner-msg { margin: 0; }
+
+/* X-handle owner links */
+.board-team a { color: var(--accent); text-decoration: none; }
+.board-team a:hover { text-decoration: underline; }

@@ -6,6 +6,12 @@ export function json(data, status = 200) {
   });
 }
 
+// An owner written as an X handle (@name) linkifies to x.com/<name>.
+export function xHandle(owner) {
+  const m = (owner || "").trim().match(/^@([A-Za-z0-9_]{1,15})$/);
+  return m ? m[1] : null;
+}
+
 export function utcToday() {
   return new Date().toISOString().slice(0, 10);
 }

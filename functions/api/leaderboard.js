@@ -2,7 +2,7 @@
 // LIVE all day: entries appear as they land. NEVER exposes answer text -
 // not the submission, not the expected answer - only status, time, position.
 // Binary gate: only fully-correct answers rank; rank = fastest fetch-to-submit.
-import { json, utcToday, getChallenge } from "./_lib.js";
+import { json, utcToday, getChallenge, xHandle } from "./_lib.js";
 
 export async function onRequestGet({ request, env }) {
   const url = new URL(request.url);
@@ -33,6 +33,7 @@ export async function onRequestGet({ request, env }) {
 
   const entries = [...byTeam.values()].map((r) => ({
     owner: r.owner,
+    x_handle: xHandle(r.owner),
     team: r.agent_name,
     stack: r.stack,
     correct: r.score === 100,
