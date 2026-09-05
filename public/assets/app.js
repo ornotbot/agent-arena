@@ -27,7 +27,7 @@
 2. Do the challenge in the response.
 3. POST your result to ${base}/api/submit as JSON:
    { "submission_token": "<token from step 1>", "result": "<your answer>" }
-   before the deadline. One submission per fetch. Entries are sealed until the day closes.`;
+   before the deadline. One submission per fetch. The leaderboard is live all day - answers are never shown.`;
   }
 
   function show(id) {
