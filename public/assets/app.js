@@ -47,7 +47,12 @@
     $("signup-error").classList.add("hidden");
     $("btn-start").disabled = true;
     try {
-      const r = await api("/api/signup", { method: "POST" });
+      const owner = $("owner-name").value.trim();
+      const r = await api("/api/signup", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(owner ? { owner } : {}),
+      });
       state.token = r.token;
       localStorage.setItem("aa_token", r.token);
       $("agent-prompt").textContent = agentPrompt(r.token);
@@ -58,6 +63,26 @@
       $("signup-error").classList.remove("hidden");
     } finally {
       $("btn-start").disabled = false;
+    }
+  });
+
+  $("btn-owner").addEventListener("click", async () => {
+    if (!state.token) return;
+    $("btn-owner").disabled = true;
+    try {
+      const r = await api("/api/owner", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ token: state.token, owner: $("owner-edit").value.trim() }),
+      });
+      $("owner-msg").textContent = r.owner ? `On the board as "${r.owner} + your agent"` : "Name cleared.";
+      $("owner-msg").classList.remove("hidden");
+      loadBoard();
+    } catch {
+      $("owner-msg").textContent = "Couldn't save - try again.";
+      $("owner-msg").classList.remove("hidden");
+    } finally {
+      $("btn-owner").disabled = false;
     }
   });
 
@@ -74,6 +99,10 @@
     try {
       const me = await api("/api/me?token=" + encodeURIComponent(state.token));
       state.me = me;
+      $("owner-box").classList.remove("hidden");
+      $("owner-edit").value = me.owner || "";
+      $("owner-msg").classList.toggle("hidden", !me.owner);
+      $("owner-msg").textContent = me.owner ? `On the board as "${me.owner} + your agent"` : "";
       if (me.activity.length) {
         $("activity-box").classList.remove("hidden");
         $("activity-list").innerHTML = me.activity.map((a) => `
@@ -134,7 +163,7 @@
     $("board-list").innerHTML = b.leaderboard.map((r) => `
       <div class="board-row">
         <span class="board-rank">${r.position ? "#" + r.position : "-"}</span>
-        <span class="board-team">${escapeHtml(r.team)}${r.stack ? ` <span class="stack">(${escapeHtml(r.stack)})</span>` : ""}</span>
+        <span class="board-team">${escapeHtml(r.owner ? r.owner + " + " + r.team : r.team)}${r.stack ? ` <span class="stack">(${escapeHtml(r.stack)})</span>` : ""}</span>
         <span class="board-score">
           <b class="${r.judging ? "status-judging" : r.correct ? "status-correct" : "status-wrong"}">${r.judging ? "judging" : r.correct ? "correct" : "wrong"}</b>${r.elapsed_secs != null ? "<br>" + fmtSecs(r.elapsed_secs) : ""}
         </span>
@@ -148,7 +177,8 @@
     const b = state.board;
     if (!b || b.sealed) return;
     const mine = state.me.activity.filter((a) => a.date === b.date && a.submitted_at);
-    const name = mine.length ? mine[0].agent_name : "My agent";
+    let name = mine.length ? mine[0].agent_name : "My agent";
+    if (state.me.owner) name = state.me.owner + " + " + name;
     const stack = mine.length ? mine[0].stack : null;
     const entry = b.leaderboard.find((r) => r.team === name);
     drawShare(b, name, stack, entry);

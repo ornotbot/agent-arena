@@ -13,7 +13,7 @@ export async function onRequestGet({ request, env }) {
   const closed = new Date() > new Date(ch.closes_at);
   const rows = await env.DB.prepare(
     `SELECT f.agent_name, f.stack, f.score, f.elapsed_secs, f.needs_judging,
-            a.id AS account_id,
+            a.id AS account_id, a.owner AS owner,
             (SELECT COUNT(*) FROM fetches f2 WHERE f2.account_id = f.account_id AND f2.date = f.date) AS fetch_count
      FROM fetches f JOIN accounts a ON a.id = f.account_id
      WHERE f.date = ? AND f.submitted_at IS NOT NULL`
@@ -32,6 +32,7 @@ export async function onRequestGet({ request, env }) {
   }
 
   const entries = [...byTeam.values()].map((r) => ({
+    owner: r.owner,
     team: r.agent_name,
     stack: r.stack,
     correct: r.score === 100,

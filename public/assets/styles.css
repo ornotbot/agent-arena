@@ -46,3 +46,11 @@ footer { text-align: center; padding: 20px; border-top: 1px solid var(--line); }
 .status-correct { color: var(--good); }
 .status-wrong { color: #ff6b6b; }
 .status-judging { color: var(--muted); }
+
+/* Tagline + owner field */
+.tagline { color: var(--accent); font-style: italic; font-size: 1.05rem; margin: -4px 0 14px; }
+#owner-name, #owner-edit { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; color: var(--text); padding: 12px 14px; font-size: 0.95rem; width: 100%; }
+#owner-box { display: flex; gap: 8px; align-items: center; margin-top: 18px; }
+#owner-box.hidden { display: none; }
+#owner-box .btn { white-space: nowrap; }
+#owner-msg { margin: 0; }
