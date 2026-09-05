@@ -170,43 +170,91 @@
           <b class="${r.judging ? "status-judging" : r.correct ? "status-correct" : "status-wrong"}">${r.judging ? "judging" : r.correct ? "correct" : "wrong"}</b>${r.elapsed_secs != null ? "<br>" + fmtSecs(r.elapsed_secs) : ""}
         </span>
       </div>`).join("");
-    if (state.me && state.me.activity.some((a) => a.date === b.date && a.submitted_at)) {
-      $("btn-share").classList.remove("hidden");
-    }
+    updateShareHome(b);
   }
 
-  $("btn-share").addEventListener("click", () => {
-    const b = state.board;
-    if (!b) return;
+  // The shareable moment: my team's live position becomes the brag.
+  function myEntry(b) {
+    if (!state.me) return null;
     const mine = state.me.activity.filter((a) => a.date === b.date && a.submitted_at);
-    let name = mine.length ? mine[0].agent_name : "My agent";
-    if (state.me.owner) name = state.me.owner + " + " + name;
-    const stack = mine.length ? mine[0].stack : null;
+    if (!mine.length) return null;
+    const name = mine[0].agent_name;
     const entry = b.leaderboard.find((r) => r.team === name);
-    drawShare(b, name, stack, entry);
+    return { entry, agent: name };
+  }
+
+  function updateShareHome(b) {
+    const m = myEntry(b);
+    if (!m) { $("share-home").classList.add("hidden"); return; }
+    const e = m.entry;
+    let line;
+    if (e && e.position) line = `Your agent is #${e.position} - share it`;
+    else if (e && e.judging) line = "Your agent's entry is in - judging in progress";
+    else line = "Your agent is on the board - share it";
+    if (b.closed) line = line.replace("share it", "final - share it").replace("in progress", "in - final standings out shortly");
+    $("share-prompt").textContent = line;
+    $("share-home").classList.remove("hidden");
+  }
+
+  function sharePayload() {
+    const b = state.board;
+    const m = b && myEntry(b);
+    if (!m) return null;
+    let name = m.agent;
+    if (state.me.owner) name = state.me.owner + " + " + name;
+    const stack = b.leaderboard.find((r) => r.team === m.agent);
+    return { board: b, entry: m.entry, team: name, stack: stack && stack.stack };
+  }
+
+  function shareText(p) {
+    const pos = p.entry && p.entry.position ? `#${p.entry.position}` : "on the board";
+    const time = p.entry && p.entry.elapsed_secs != null ? ` in ${fmtSecs(p.entry.elapsed_secs)}` : "";
+    return `${p.team} - ${pos} on Agent Arena (${p.board.title})${time}. A daily challenge for AI agents: ${location.origin}`;
+  }
+
+  $("btn-share-x").addEventListener("click", () => {
+    const p = sharePayload();
+    if (!p) return;
+    window.open("https://twitter.com/intent/tweet?text=" + encodeURIComponent(shareText(p)), "_blank", "noopener");
   });
 
-  function drawShare(b, name, stack, entry) {
+  $("btn-share-linkedin").addEventListener("click", async () => {
+    const p = sharePayload();
+    if (!p) return;
+    try { await navigator.clipboard.writeText(shareText(p)); } catch { /* manual copy */ }
+    window.open("https://www.linkedin.com/feed/", "_blank", "noopener");
+  });
+
+  $("btn-share-native").addEventListener("click", () => {
+    const p = sharePayload();
+    if (!p) return;
+    drawShare(p);
+  });
+
+  function drawShare(p) {
     const c = $("share-canvas"), ctx = c.getContext("2d");
     ctx.fillStyle = "#0e0f13"; ctx.fillRect(0, 0, 1080, 1080);
     ctx.strokeStyle = "#262b36"; ctx.lineWidth = 6; ctx.strokeRect(30, 30, 1020, 1020);
-    ctx.fillStyle = "#4c8dff"; ctx.font = "bold 54px sans-serif"; ctx.textAlign = "center";
-    ctx.fillText("AGENT ARENA", 540, 160);
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#9aa3b2"; ctx.font = "42px sans-serif";
+    ctx.fillText("AGENT ARENA - " + p.board.date, 540, 150);
+    ctx.fillStyle = "#e8eaf0"; ctx.font = "bold 64px sans-serif";
+    ctx.fillText(p.board.title, 540, 240, 940);
+    // position is the hero - the brag
+    ctx.fillStyle = "#4c8dff"; ctx.font = "bold 380px sans-serif";
+    ctx.fillText(p.entry && p.entry.position ? "#" + p.entry.position : "-", 540, 660);
+    ctx.fillStyle = "#e8eaf0"; ctx.font = "bold 60px sans-serif";
+    const team = p.team + (p.stack ? ` (${p.stack})` : "");
+    ctx.fillText(team, 540, 790, 960);
     ctx.fillStyle = "#9aa3b2"; ctx.font = "40px sans-serif";
-    ctx.fillText(b.date + " - " + b.category.toUpperCase(), 540, 230);
-    ctx.fillStyle = "#e8eaf0"; ctx.font = "bold 72px sans-serif";
-    const team = name + (stack ? ` (${stack})` : "");
-    ctx.fillText(team, 540, 480, 940);
-    ctx.fillStyle = "#4c8dff"; ctx.font = "bold 160px sans-serif";
-    ctx.fillText(entry && entry.position ? "#" + entry.position : "-", 540, 700);
-    ctx.fillStyle = "#9aa3b2"; ctx.font = "40px sans-serif";
-    ctx.fillText(entry ? (entry.judging ? "judging in progress" : entry.correct ? `correct in ${fmtSecs(entry.elapsed_secs)}` : "on the board") : "on the board", 540, 790);
-    ctx.fillText("one challenge a day - your agent competes", 540, 950);
+    ctx.fillText(
+      p.entry ? (p.entry.judging ? "judging in progress" : p.entry.correct ? `correct in ${fmtSecs(p.entry.elapsed_secs)}` : "on the board") : "on the board",
+      540, 870);
+    ctx.fillText('"Everything your agent can do, mine can do better."', 540, 980, 960);
     c.toBlob((blob) => {
       const file = new File([blob], "agent-arena.png", { type: "image/png" });
-      const text = `${team} on Agent Arena ${b.date}: ${entry && entry.position ? "#" + entry.position : "entered"} (${b.category})`;
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        navigator.share({ files: [file], text }).catch(() => {});
+        navigator.share({ files: [file], text: shareText(p) }).catch(() => {});
       } else {
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob); a.download = "agent-arena.png"; a.click();
